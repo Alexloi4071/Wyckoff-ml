@@ -14,11 +14,14 @@ Backtrader ML策略回測主執行腳本
 
 # ------ 強制設置 matplotlib 非交互後端 ------
 import os
-import matplotlib
-matplotlib.use('Agg')          # 必須在導入pyplot前設置
-import matplotlib.pyplot as plt
-plt.ioff()                     # 關閉交互模式
+# 必須在導入任何模組之前設置環境變量
 os.environ['MPLBACKEND'] = 'Agg'
+os.environ['DISPLAY'] = ''  # 禁用 DISPLAY（Linux/Mac）
+
+import matplotlib
+matplotlib.use('Agg', force=True)  # 強制使用非交互後端
+import matplotlib.pyplot as plt
+plt.ioff()                         # 關閉交互模式
 # -------------------------------------------
 
 import argparse
@@ -523,20 +526,26 @@ if __name__ == "__main__":
     
     # 只在成功創建 engine 且 cerebro 有效時保存圖表
     if engine is not None and hasattr(engine, 'cerebro') and engine.cerebro is not None:
-        from save_bt_fig import save_backtrader_figures
-        try:
-            # 使用與回測報告相同的版本化目錄
-            if '_internal_results_dir' in engine.config:
-                output_dir = engine.config['_internal_results_dir']
-            else:
-                output_dir = engine.config['output']['results_dir']
-                
-            save_backtrader_figures(
-                engine.cerebro,
-                output_dir=output_dir,
-                file_prefix=engine.config['output'].get('file_prefix','backtest')
-            )
-        except Exception as e:
-            print(f"[警告] K線圖表保存失敗: {e}")
+        # 檢查是否啟用 K 線圖保存（默認禁用以避免 GUI 彈窗）
+        save_kline = engine.config['output'].get('save_kline_chart', False)
+        
+        if save_kline:
+            from save_bt_fig import save_backtrader_figures
+            try:
+                # 使用與回測報告相同的版本化目錄
+                if '_internal_results_dir' in engine.config:
+                    output_dir = engine.config['_internal_results_dir']
+                else:
+                    output_dir = engine.config['output']['results_dir']
+                    
+                save_backtrader_figures(
+                    engine.cerebro,
+                    output_dir=output_dir,
+                    file_prefix=engine.config['output'].get('file_prefix','backtest')
+                )
+            except Exception as e:
+                print(f"[警告] K線圖表保存失敗: {e}")
+        else:
+            print("[信息] K線圖表保存已禁用 (避免GUI彈窗，如需啟用請在配置中設置 save_kline_chart: true)")
     else:
         print("[信息] 跳過 K線圖表保存 (非單次回測或 cerebro 未初始化)")

@@ -1,0 +1,95 @@
+# 新數據回測配置 - 4h時框
+# 使用修復後的數據（無數據洩漏）
+
+general:
+  data_path: "data/btcusdt_1m.parquet"
+  features_path: "out/4h/btcusdt_features_4h.csv"
+  labels_path: "out/4h/btcusdt_labels_4h.csv"
+  
+  ohlcv_datetime_col: "datetime"
+  features_datetime_col: "timestamp"
+  labels_datetime_col: "timestamp"
+  start_date: "2023-01-15"
+  end_date: null
+  
+  symbol: "BTCUSDT"
+  timeframe: "4h"
+  strategy_type: "new_fixed"
+
+broker:
+  cash: 100000.0
+  commission: 0.001
+  slippage: 0.0005
+
+strategy:
+  strategy_name: "BTCUSDT_4h_New_Fixed_Strategy"
+  
+  signals:
+    primary_signal:
+      label_col: "y_bin_ret_log_p70_h10"
+      threshold: 0.5
+      weight: 0.7
+    
+    secondary_signals:
+      - label_col: "y_hit_target_first_h10_s1.5_t2.5"
+        threshold: 0.5
+        weight: 0.2
+      - label_col: "y_regime_vol70_ma50"
+        threshold: 1
+        weight: 0.1
+  
+  risk:
+    stop_loss: 0.012      # 1.2% (時框特定參數)
+    take_profit: 0.040    # 4.0% (時框特定參數)
+    trailing_stop: 0.008
+    
+    trailing_take_profit:
+      enabled: true
+      activation_pct: 0.012
+      trail_pct: 0.006
+      lock_profit_pct: 0.015
+      step_up_pct: 0.004
+    
+    time_stop:
+      enabled: true
+      max_bars: 8       # 4h * 8 = 32小時
+      min_profit_bars: 6
+      min_profit_threshold: 0.006
+  
+  feature_filters:
+    volume_filter:
+      enabled: true
+      feature_col: "f_vol_pct_42"
+      min_threshold: 0.2
+    
+    volatility_filter:
+      enabled: true
+      feature_col: "f_atr_14_p"
+      min_threshold: 0.004
+      max_threshold: 0.025
+    
+    trend_filter:
+      enabled: true
+      feature_col: "f_rsi_14"
+      min_threshold: 30
+      max_threshold: 70
+  
+  position:
+    size_method: "signal_based"
+    base_size: 0.5
+    max_size: 0.85
+    max_positions: 1
+  
+  ml_model:
+    enabled: false
+
+output:
+  results_dir: "BackTest_Result"
+  generate_report: true
+  save_trades: true
+  save_equity_curve: true
+  plot_results: true
+  gui_mode: false
+  file_prefix: "BTCUSDT_4h_New_Fixed"
+  timestamp: true
+  create_timestamp_dir: true

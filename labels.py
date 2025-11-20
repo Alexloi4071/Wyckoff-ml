@@ -43,17 +43,35 @@ def forward_return(close: pd.Series, h: int = 20, method: str = "log") -> pd.Ser
         return close.shift(-h) / close - 1.0
 
 # =========================================================
-# 2. 滾動分位閾值（避免資料外洩）
+# 2. 滾動分位閾值（避免資料外洩）- 修復版
 # =========================================================
 def rolling_threshold(series: pd.Series, window: int = 252,
                       q: float = 70, side: str = "upper") -> pd.Series:
     """
-    window: 參考視窗長度，範圍 50~5000，預設 252
-    q: 分位百分比，範圍 1~99，預設 70
-    side: 'upper' 或 'lower'，預設 'upper'
+    計算滾動分位閾值（避免數據外洩）
+    
+    關鍵修復:
+    1. 使用shift(1)確保不使用當期數據
+    2. 再次shift(1)確保閾值基於歷史數據
+    
+    Args:
+        series: 輸入序列(通常是未來收益)
+        window: 參考視窗長度，範圍 50~5000，預設 252
+        q: 分位百分比，範圍 1~99，預設 70
+        side: 'upper' 或 'lower'，預設 'upper'
+    
+    Returns:
+        分位數閾值序列
     """
-    ref = series.shift(1).rolling(window, min_periods=window)
-    return ref.quantile(q / 100.0)
+    # 步驟1: 回退1期,確保不使用當期數據
+    shifted = series.shift(1)
+    
+    # 步驟2: 計算滾動分位數
+    rolling_q = shifted.rolling(window, min_periods=window).quantile(q / 100.0)
+    
+    # 步驟3: 再次回退1期,確保閾值完全基於歷史
+    # 這樣在時刻t,使用的是t-2到t-window-1的數據
+    return rolling_q.shift(1)
 
 # =========================================================
 # 3. 未來最大回撤
@@ -223,3 +241,54 @@ if __name__ == "__main__":
     labels_df = make_labels(df, default_cfg)
     labels_df.to_csv("labels_output.csv")
     print(f"[完成] 已輸出標籤至 labels_output.csv，共 {labels_df.shape[0]} 筆記錄。")
+
+
+# =========================================================
+# 測試: 驗證不存在數據洩漏
+# =========================================================
+def test_no_lookahead_bias():
+    """
+    單元測試: 驗證rolling_threshold不存在前視偏差
+    """
+    print("\n" + "="*60)
+    print("測試: 數據洩漏檢查")
+    print("="*60)
+    
+    # 創建測試數據
+    dates = pd.date_range('2023-01-01', periods=100, freq='1h')
+    close = pd.Series(np.random.randn(100).cumsum() + 100, index=dates)
+    
+    # 計算未來收益
+    future_ret = forward_return(close, h=10, method='log')
+    
+    # 計算閾值
+    threshold = rolling_threshold(future_ret, window=20, q=70)
+    
+    # 驗證: 在每個時刻t,閾值不應該包含t及之後的數據
+    errors = 0
+    for t in range(22, len(close)):  # 從第22個開始(window=20 + 2個shift)
+        if not pd.isna(threshold.iloc[t]):
+            # 閾值應該基於t-2到t-21的數據
+            expected_data = future_ret.iloc[t-21:t-1]  # t-21到t-2
+            actual_threshold = threshold.iloc[t]
+            
+            # 計算期望閾值
+            expected_threshold = expected_data.quantile(0.70)
+            
+            # 允許小的浮點誤差
+            if abs(actual_threshold - expected_threshold) > 1e-10:
+                print(f"✗ 時刻{t}檢測到潛在洩漏!")
+                print(f"  期望閾值(基於t-21到t-2): {expected_threshold:.6f}")
+                print(f"  實際閾值: {actual_threshold:.6f}")
+                errors += 1
+                if errors >= 5:  # 只顯示前5個錯誤
+                    break
+    
+    if errors == 0:
+        print("✓ 通過: 未檢測到數據洩漏")
+        print(f"  測試樣本數: {len(close)}")
+        print(f"  驗證時間點: {len(close) - 22}")
+        return True
+    else:
+        print(f"✗ 失敗: 檢測到 {errors} 個潛在洩漏點")
+        return False

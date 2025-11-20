@@ -1,0 +1,106 @@
+# config_base.yaml
+# 基礎配置(所有時框共享的部分)
+
+general:
+  seed: 42
+  input_csv: "data/btcusdt_1m.parquet"  # 1分鐘原始數據
+  time_col: "datetime"
+  open_col: "open"
+  high_col: "high"
+  low_col: "low"
+  close_col: "close"
+  volume_col: "volume"
+  start_date: "2023-01-01"  # 回測起始
+  end_date: null             # null表示到最新
+  dropna: true
+
+preprocess:
+  tz_localize: "UTC"
+  resample: null  # 由時框適配器動態設置
+  log_price: false
+
+# 特徵開關(具體參數由時框適配器覆蓋)
+features:
+  returns:
+    enabled: true
+    windows: [5, 20, 60]  # 會被時框適配器調整
+    method: "log"
+  
+  zscore:
+    enabled: true
+    window: 20  # 會被調整
+  
+  rsi:
+    enabled: true
+    window: 14  # 會被時框適配器覆蓋
+  
+  atr:
+    enabled: true
+    window: 14  # 會被時框適配器覆蓋
+    normalize: "close"
+  
+  bbands:
+    enabled: true
+    window: 20  # 會被調整
+    k: 2.0
+  
+  volume_percentile:
+    enabled: true
+    window: 60  # 會被調整
+  
+  volatility_percentile:
+    enabled: true
+    window: 60  # 會被調整
+    base: "atr"
+  
+  range_contraction:
+    enabled: true
+    window: 20
+  
+  wick_ratios:
+    enabled: true
+    clip: 5.0
+  
+  obv_delta:
+    enabled: true
+    window: 20
+
+# 標籤開關(具體參數由時框適配器覆蓋)
+labels:
+  future_return_binary:
+    enabled: true
+    method: "log"
+    side: "upper"
+    pctile: 60       # 會被時框適配器覆蓋
+    ref_window: 252  # 會被時框適配器覆蓋
+    horizons: [10, 20]   # 會被時框適配器覆蓋
+  
+  breakout_confirmation:
+    enabled: true
+    lookback: 60
+    confirm_days: 2
+    min_breakout_pct: 0.5
+  
+  max_drawdown_within_horizon:
+    enabled: true
+    horizon: 20
+    threshold_pct: -10.0
+  
+  stop_target_hit_first:
+    enabled: true
+    horizon: 20       # 會被覆蓋
+    atr_window: 14    # 會被覆蓋
+    stop_atr: 1.5
+    target_atr: 2.5
+  
+  regime_label:
+    enabled: true
+    atr_window: 14
+    vol_upper_pctile: 70
+    trend_ma_window: 50
+
+output:
+  base_dir: "out"
+  base_name: "btcusdt"
+  features_csv: "out/features.csv"
+  labels_csv: "out/labels.csv"

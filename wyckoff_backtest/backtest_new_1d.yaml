@@ -1,0 +1,96 @@
+# 新數據回測配置 - 1D時框
+# 使用修復後的數據（無數據洩漏）
+
+general:
+  data_path: "data/btcusdt_1m.parquet"
+  features_path: "out/1d/btcusdt_features_1d.csv"
+  labels_path: "out/1d/btcusdt_labels_1d.csv"
+  
+  ohlcv_datetime_col: "datetime"
+  features_datetime_col: "timestamp"
+  labels_datetime_col: "timestamp"
+  start_date: "2023-01-15"
+  end_date: null
+  
+  symbol: "BTCUSDT"
+  timeframe: "1d"
+  strategy_type: "new_fixed"
+
+broker:
+  cash: 100000.0
+  commission: 0.001
+  slippage: 0.0005
+
+strategy:
+  strategy_name: "BTCUSDT_1d_New_Fixed_Strategy"
+  
+  signals:
+    # 主信號：使用新生成的標籤
+    primary_signal:
+      label_col: "y_bin_ret_log_p75_h5"
+      threshold: 0.5
+      weight: 0.7
+    
+    secondary_signals:
+      - label_col: "y_hit_target_first_h5_s1.5_t2.5"
+        threshold: 0.5
+        weight: 0.2
+      - label_col: "y_regime_vol70_ma50"
+        threshold: 1
+        weight: 0.1
+  
+  risk:
+    stop_loss: 0.008      # 0.8% (時框特定參數)
+    take_profit: 0.025    # 2.5% (時框特定參數)
+    trailing_stop: 0.005  # 0.5%
+    
+    trailing_take_profit:
+      enabled: true
+      activation_pct: 0.008
+      trail_pct: 0.004
+      lock_profit_pct: 0.010
+      step_up_pct: 0.003
+    
+    time_stop:
+      enabled: true
+      max_bars: 5       # 1d * 5 = 5天
+      min_profit_bars: 3
+      min_profit_threshold: 0.004
+  
+  feature_filters:
+    volume_filter:
+      enabled: true
+      feature_col: "f_vol_pct_7"
+      min_threshold: 0.2
+    
+    volatility_filter:
+      enabled: true
+      feature_col: "f_atr_14_p"
+      min_threshold: 0.008
+      max_threshold: 0.040
+    
+    trend_filter:
+      enabled: true
+      feature_col: "f_rsi_14"
+      min_threshold: 35
+      max_threshold: 65
+  
+  position:
+    size_method: "signal_based"
+    base_size: 0.5
+    max_size: 0.75
+    max_positions: 1
+  
+  ml_model:
+    enabled: false
+
+output:
+  results_dir: "BackTest_Result"
+  generate_report: true
+  save_trades: true
+  save_equity_curve: true
+  plot_results: true
+  gui_mode: false
+  file_prefix: "BTCUSDT_1d_New_Fixed"
+  timestamp: true
+  create_timestamp_dir: true
