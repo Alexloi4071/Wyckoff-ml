@@ -1,0 +1,55 @@
+# 嚴格保守版配置：訊號少但勝率高，偏向保守穩健
+# 支持多時間框架，從1分鐘數據重採樣
+general:
+  seed: 42                          # 隨機種子，範圍 1~1e9
+  input_csv: "data/btcusdt_1m.parquet"  # 使用最新更新的完整1分鐘數據
+  time_col: "datetime"             # 時間欄位名稱
+  open_col: "open"                   # 開盤價欄位
+  high_col: "high"                   # 最高價欄位
+  low_col: "low"                     # 最低價欄位
+  close_col: "close"                 # 收盤價欄位
+  volume_col: "volume"               # 成交量欄位
+  start_date: null                   # 已經是3年數據，不需要再限制
+  end_date: null                     # 結束日期（null 表示到最後）
+  dropna: true                       # 是否移除缺失值
+
+preprocess:
+  tz_localize: "UTC"                 # 設定時區確保重採樣正確
+  resample: ["15m", "1H", "4H", "1D"] # 多時間框架：15分鐘、1小時、4小時、1天
+  log_price: false                   # 是否將價格轉對數
+
+features:
+  returns: {enabled: true, windows: [20, 60], method: "log"}          # 收益率視窗長，2~1000
+  zscore: {enabled: true, window: 60}                                 # 價格Z-score視窗，5~500
+  rsi: {enabled: true, window: 14}                                    # RSI視窗，2~200
+  atr: {enabled: true, window: 14, normalize: "close"}                # ATR視窗，2~200
+  bbands: {enabled: true, window: 60, k: 2.0}                         # 布林帶視窗 5~500，寬度k 0.5~4.0
+  volume_percentile: {enabled: true, window: 120}                     # 成交量百分位視窗，5~2000
+  volatility_percentile: {enabled: true, window: 120, base: "atr"}    # 波動率百分位，基於atr或absret
+  range_contraction: {enabled: false, window: 20}                     # 區間收縮
+  wick_ratios: {enabled: false, clip: 5.0}                            # 上下影線比例，clip範圍0.5~20
+  obv_delta: {enabled: false, window: 20}                             # OBV變化率視窗，2~1000
+
+labels:
+  future_return_binary: {
+    enabled: true, method: "log", side: "upper",
+    pctile: 85, ref_window: 252, horizons: [20]  # 80→85 更嚴格
+  }
+  breakout_confirmation: {
+    enabled: true, lookback: 120, confirm_days: 4, min_breakout_pct: 1.5  # 3→4, 1.0→1.5 更嚴格
+  }
+  max_drawdown_within_horizon: {
+    enabled: true, horizon: 20, threshold_pct: -5.0  # 保持嚴格
+  }
+  stop_target_hit_first: {
+    enabled: true, horizon: 20, atr_window: 14, stop_atr: 2.0, target_atr: 3.5  # 啟用並優化
+  }
+  regime_label: {
+    enabled: true, atr_window: 14, vol_upper_pctile: 80, trend_ma_window: 50  # 啟用
+  }
+
+output:
+  base_dir: "out/BTCUSDT/strict"   # 按幣種和策略組織：out/幣種/策略/時間框架/
+  base_name: "btcusdt_strict"      # 嚴格策略文件前綴
+  features_csv: "out/BTCUSDT_1D_strict_features.parquet"  # 後向兼容
+  labels_csv: "out/BTCUSDT_1D_strict_labels.parquet"      # 後向兼容

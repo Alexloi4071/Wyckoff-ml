@@ -1,0 +1,96 @@
+# 4H (4小時線) 回測配置 - 測試時間框架影響
+
+general:
+  data_path: "../data/btcusdt_1m.parquet"
+  features_path: "../out/BTCUSDT/loose_v5.1/4H/btcusdt_loose_v5.1_features_4H.csv"
+  labels_path: "../out/BTCUSDT/loose_v5.1/4H/btcusdt_loose_v5.1_labels_4H.csv"
+  
+  ohlcv_datetime_col: "datetime"
+  features_datetime_col: "ts"
+  labels_datetime_col: "ts"
+  start_date: "2023-01-01"
+  end_date: null
+  
+  symbol: "BTCUSDT"
+  timeframe: "4H"
+  strategy_type: "loose_v5.1"
+
+broker:
+  cash: 100000.0
+  commission: 0.001
+  slippage: 0.0005
+
+strategy:
+  strategy_name: "BTCUSDT_4H_Loose_V5.1_Fixed_Strategy"
+  
+  signals:
+    # 使用修復後的標籤（歷史動量，非未來數據）
+    primary_signal:
+      label_col: "y_bin_ret_log_p60_h10"
+      threshold: 0.35
+      weight: 0.6
+    
+    secondary_signals:
+      - label_col: "y_brk_lb60_k2_p0"
+        threshold: 0.35
+        weight: 0.25
+      - label_col: "y_regime_vol70_ma50"
+        threshold: 2
+        weight: 0.15
+  
+  risk:
+    # 4小時級別的風險參數
+    stop_loss: 0.03       # 3% 止損
+    take_profit: 0.09     # 9% 止盈
+    trailing_stop: 0.02   # 2% 追蹤止損
+    
+    trailing_take_profit:
+      enabled: true
+      activation_pct: 0.02
+      trail_pct: 0.01
+      lock_profit_pct: 0.02
+      step_up_pct: 0.005
+    
+    time_stop:
+      enabled: true
+      max_bars: 30        # 最大持倉 30 個4小時 = 5天
+      min_profit_bars: 15 # 最小持倉 15 個4小時 = 2.5天
+      min_profit_threshold: 0.008
+  
+  feature_filters:
+    volume_filter:
+      enabled: true
+      feature_col: "volume_percentile"
+      min_threshold: 0.2
+    
+    volatility_filter:
+      enabled: true
+      feature_col: "volatility_percentile"
+      min_threshold: 0.15
+      max_threshold: 0.95
+    
+    trend_filter:
+      enabled: true
+      feature_col: "rsi"
+      min_threshold: 30
+      max_threshold: 80
+  
+  position:
+    size_method: "signal_based"
+    base_size: 0.5
+    max_size: 0.95
+    max_positions: 1
+  
+  ml_model:
+    enabled: false
+
+output:
+  results_dir: "BackTest_Result"
+  generate_report: true
+  save_trades: true
+  save_equity_curve: true
+  plot_results: true
+  gui_mode: false
+  file_prefix: "BTCUSDT_4H_Loose_V5.1_Fixed"
+  timestamp: true
+  create_timestamp_dir: true

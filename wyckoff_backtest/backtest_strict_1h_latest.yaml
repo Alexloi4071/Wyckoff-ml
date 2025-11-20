@@ -1,0 +1,63 @@
+# BTCUSDT 1H 嚴格策略回測配置 - 最新數據
+# 使用更新後的完整歷史數據
+
+general:
+  data_path: "data/btcusdt_1m.parquet"  # 使用更新後的完整數據
+  features_path: "out/BTCUSDT/strict/1H/btcusdt_strict_features_1H.parquet"
+  labels_path: "out/BTCUSDT/strict/1H/btcusdt_strict_labels_1H.parquet"
+  
+  ohlcv_datetime_col: "datetime"
+  features_datetime_col: "ts"
+  labels_datetime_col: "ts"
+  start_date: "2023-01-01"  # 使用最近2年數據進行回測
+  end_date: null
+  
+  symbol: "BTCUSDT"
+  timeframe: "1H"
+  strategy_type: "strict"
+
+broker:
+  cash: 100000.0
+  commission: 0.001
+  slippage: 0.0005
+
+strategy:
+  strategy_name: "BTCUSDT_1H_Strict_Strategy"
+  
+  signals:
+    primary_signal:
+      label_col: "y_bin_ret_log_p85_h20"  # p80→p85
+      threshold: 0.7  # 0.5→0.7 更嚴格
+      weight: 0.6
+    
+    secondary_signals:
+      - label_col: "y_brk_lb120_k4_p1"  # k3→k4
+        threshold: 0.7  # 0.5→0.7 更嚴格
+        weight: 0.25
+      - label_col: "y_regime_vol80_ma50"  # 新增regime過濾
+        threshold: 2
+        weight: 0.15
+  
+  risk:
+    stop_loss: 0.04      # 0.02→0.04 給更多空間
+    take_profit: 0.08    # 0.04→0.08 更高目標
+    trailing_stop: 0.025 # 0.015→0.025
+  
+  position:
+    size_method: "percent"
+    size_pct: 0.95
+    max_positions: 1
+  
+  ml_model:
+    enabled: false
+
+output:
+  results_dir: "BackTest_Result"
+  generate_report: true
+  save_trades: true
+  save_equity_curve: true
+  plot_results: true
+  gui_mode: false
+  file_prefix: "BTCUSDT_1H_Strict"
+  timestamp: true
+  create_timestamp_dir: true

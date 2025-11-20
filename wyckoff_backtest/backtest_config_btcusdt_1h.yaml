@@ -1,0 +1,143 @@
+# BTCUSDT 1H 回測配置文件
+# 使用 loose 策略的1H特徵和標籤數據
+
+general:
+  # 數據路徑配置 (相對於項目根目錄)
+  data_path: "../data/btcusdt_1m_3years.parquet"  # OHLCV原始數據
+  features_path: "../out/BTCUSDT/loose/1H/btcusdt_loose_features_1H.parquet"  # 1H特徵數據
+  labels_path: "../out/BTCUSDT/loose/1H/btcusdt_loose_labels_1H.parquet"      # 1H標籤數據
+  
+  # 時間配置
+  ohlcv_datetime_col: "datetime"  # OHLCV數據時間列名
+  features_datetime_col: "ts"     # 特徵數據時間列名
+  labels_datetime_col: "ts"       # 標籤數據時間列名
+  start_date: null    # 使用全部數據
+  end_date: null      # 使用全部數據
+  
+  # 其他設置
+  symbol: "BTCUSDT"
+  timeframe: "1H"
+  strategy_type: "loose"
+  strategy_name: "BTCUSDT_1H_Loose_Strategy"
+
+broker:
+  # 券商設置
+  cash: 100000.0      # 初始資金 $100,000
+  commission: 0.001   # 手續費 0.1%
+  slippage: 0.0005    # 滑點 0.05%
+  
+  # 風險管理
+  max_position_size: 0.95  # 最大倉位比例 95%
+  min_trade_amount: 100    # 最小交易金額
+
+strategy:
+  # ML策略配置
+  strategy_name: "BTCUSDT_1H_Loose_ML_Strategy"
+  class_name: "MLSignalStrategy"
+  
+  # 信號配置
+  signals:
+    primary_signal:
+      label_col: "y_bin_ret_log_p70_h10"  # 主要信號列
+      threshold: 0.5                      # 信號閾值
+      weight: 0.7                         # 主信號權重
+      direction: "long"                   # 交易方向
+    
+    secondary_signals:
+      - label_col: "y_brk_lb60_k2_p0"    # 突破確認信號
+        threshold: 0.5
+        weight: 0.2
+      - label_col: "y_regime_vol70_ma50"  # 市場狀態信號
+        threshold: 0.5
+        weight: 0.1
+  
+  # 風險管理
+  risk:
+    stop_loss: 0.02         # 止損 2%
+    take_profit: 0.06       # 止盈 6%
+    trailing_stop: 0.015    # 移動止損 1.5%
+    max_hold_bars: 24       # 最大持有時間 24小時
+    
+  # 進場條件
+  entry:
+    min_confidence: 0.6      # 最小信號置信度
+    require_volume: true     # 需要成交量確認
+    trend_filter: false      # 是否使用趨勢過濾
+    min_atr_multiple: 1.5    # 最小ATR倍數
+  
+  # 倉位管理
+  position:
+    method: "fixed_percent"  # 固定比例
+    size: 0.2               # 每次交易使用20%資金
+    max_positions: 1        # 最大同時持倉數
+  
+  # 其他參數
+  parameters:
+    lookback_period: 20     # 回望期間
+    volatility_filter: true # 波動率過濾
+    
+  # ML模型配置 (可選)
+  ml_model:
+    enabled: false          # 是否啟用ML模型預測
+    model_path: null        # 模型文件路徑
+
+analyzers:
+  # 分析器配置
+  enabled:
+    - "SharpeRatio"
+    - "DrawDown"
+    - "TradeAnalyzer"
+    - "Returns"
+    - "Transactions"
+    - "PositionsValue"
+  
+  # SharpeRatio 配置
+  sharpe_ratio:
+    timeframe: "daily"
+    riskfreerate: 0.02
+  
+  # DrawDown 配置
+  drawdown:
+    fund: true
+
+output:
+  # 輸出配置 - 使用時間戳目錄結構
+  results_dir: "../BackTest_Result"  # 基礎目錄，實際會添加時間戳子目錄
+  generate_report: true
+  save_trades: true
+  save_positions: true
+  
+  # 報告配置
+  report_format: ["html", "csv"]
+  plot_results: true    # 是否繪圖
+  gui_mode: false       # 是否啟用交互式GUI
+  save_charts: true     # 是否保存圖表
+  chart_dpi: 300        # 圖表解析度
+  plot_format: "png"
+  
+  # 文件命名 - 使用幣種+時框格式
+  file_prefix: "BTCUSDT_1H"
+  timestamp: true
+  create_timestamp_dir: true  # 自動創建時間戳目錄
+
+# 優化配置 (可選)
+optimization:
+  enabled: false
+  method: "optuna"
+  n_trials: 100
+  
+  # 優化目標
+  objective: "sharpe_ratio"  # 或 "total_return", "max_drawdown"
+  
+  # 參數空間
+  param_space:
+    strategy.exit_conditions.stop_loss: [0.01, 0.05, 0.005]    # 止損範圍
+    strategy.exit_conditions.take_profit: [0.03, 0.10, 0.01]   # 止盈範圍
+    strategy.entry_conditions.min_confidence: [0.5, 0.8, 0.05] # 信號置信度
+    strategy.position_sizing.size: [0.1, 0.5, 0.05]            # 倉位大小
+
+# 日志配置
+logging:
+  level: "INFO"
+  save_log: true
+  log_file: "../out/BTCUSDT/loose/1H/backtest_results/backtest.log"

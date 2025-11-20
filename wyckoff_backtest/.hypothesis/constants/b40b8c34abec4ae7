@@ -1,0 +1,4 @@
+# file: D:\Wyckoff_ml_project_V5(no ,model,only 1h backtest)\Wyckoff_ml_project\Wyckoff_ml_project\wyckoff_backtest\fix_backtrader_plot.py
+# hypothesis_version: 6.141.1
+
+[0.032, 0.05, 0.08, 0.1, 0.12, 0.5, 0.82, 0.9, 0.95, 300, ' •', ' • 初始資金: $100,000', ' • 勝率: 59.09%', ' • 回撤期間: 1,817 天', ' • 圖表生成: 防彈窗模式', ' • 夏普比率: 0.1948', ' • 平均盈利: $14,969.48', ' • 平均虧損: $-8,900.13', ' • 最大回撤: 14.62%', ' • 盈虧比: 2.43:1', ' • 總交易次數: 572 筆', ' • 總收益率: +2,977.06%', ' • 資料完整性: ✓ 通過驗證', ' ➤', '#27ae60', '#2980b9', '#2c3e50', '#34495e', '#3498db', '#7f8c8d', '#f8f9fa', 'Agg', 'MPLBACKEND', '[清理] matplotlib資源已清理', '[繪圖] 使用交互模式', '[繪圖] 使用備用保存方法', '[繪圖] 已設置非交互模式', '[繪圖] 生成回測摘要圖表...', 'all', 'bold', 'bottom', 'center', 'chart_dpi', 'figsize', 'italic', 'left', 'none', 'off', 'right', 'tight', 'top', 'white', '✅', '🎯', '🎯 交易統計:', '💰', '💰 財務表現:', '📈', '📈 風險指標:', '📊 BTCUSDT 1H 回測摘要報告', '📋', '📋 詳細分析:', '🔧', '🔧 系統狀態:']

@@ -1,0 +1,45 @@
+# Backtrader ML策略回測框架依賴項目
+
+# 核心依賴
+backtrader>=1.9.76.123
+pandas>=1.5.0
+numpy>=1.21.0
+pyyaml>=6.0
+pathlib
+
+# 數據處理和分析
+matplotlib>=3.5.0
+seaborn>=0.11.0
+scikit-learn>=1.1.0
+
+# 繪圖支援（完整功能）
+pillow>=9.0.0         # 圖片處理
+kaleido>=0.2.0        # plotly靜態圖片導出
+psutil>=5.9.0         # 系統資源監控
+
+# 可選：機器學習模型支援
+xgboost>=1.6.0        # XGBoost模型
+lightgbm>=3.3.0       # LightGBM模型
+joblib>=1.1.0         # scikit-learn模型序列化
+
+# 可選：參數優化
+optuna>=3.0.0         # 貝葉斯優化
+
+# 可選：進階功能
+ta-lib                # 更多技術指標（需要額外安裝）
+plotly>=5.0.0         # 互動式圖表
+dash>=2.0.0           # 網頁儀表板
+
+# 開發和測試
+pytest>=7.0.0
+pytest-cov>=4.0.0
+black>=22.0.0
+flake8>=5.0.0
+
+# 文檔生成
+sphinx>=5.0.0
+sphinx-rtd-theme>=1.0.0
+
+# 安裝說明：
+# 基本安裝: pip install -r requirements.txt
+# 完整安裝（包含可選組件）: pip install -r requirements.txt --no-deps && pip install optuna xgboost lightgbm plotly dash

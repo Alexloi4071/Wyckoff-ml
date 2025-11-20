@@ -1,0 +1,52 @@
+# Binance 实时交易信号配置 - V5.1 策略
+# 用于从 Binance 获取实时数据并生成交易信号
+
+# 交易对和时间框架
+symbol: "BTC/USDT"
+timeframe: "1h"
+
+# 历史数据回溯量（用于计算指标）
+lookback_bars: 200
+
+# V5.1 策略配置
+strategy:
+  signals:
+    # 主信号
+    primary_signal:
+      label_col: "y_bin_ret_log_p60_h10"
+      threshold: 0.35
+      weight: 0.6
+    
+    # 辅助信号
+    secondary_signals:
+      - label_col: "y_brk_lb60_k2_p0"
+        threshold: 0.35
+        weight: 0.25
+      - label_col: "y_regime_vol70_ma50"
+        threshold: 2
+        weight: 0.15
+  
+  # 特征过滤
+  feature_filters:
+    volume_filter:
+      enabled: true
+      feature_col: "volume_percentile"
+      min_threshold: 0.2
+    
+    volatility_filter:
+      enabled: true
+      feature_col: "volatility_percentile"
+      min_threshold: 0.15
+      max_threshold: 0.95
+    
+    trend_filter:
+      enabled: true
+      feature_col: "rsi"
+      min_threshold: 30
+      max_threshold: 80
+  
+  # 风险管理
+  risk:
+    stop_loss: 0.012      # 1.2%
+    take_profit: 0.045    # 4.5%
+    trailing_stop: 0.010  # 1.0%

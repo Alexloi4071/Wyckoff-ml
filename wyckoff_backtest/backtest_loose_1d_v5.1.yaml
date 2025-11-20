@@ -1,0 +1,142 @@
+# V5.1 回測配置 - 1D時框
+# 使用最新數據進行回測
+
+general:
+  seed: 42
+  input_csv: "data/btcusdt_1m.parquet"
+  time_col: "datetime"
+  open_col: "open"
+  high_col: "high"
+  low_col: "low"
+  close_col: "close"
+  volume_col: "volume"
+  data_path: "data/btcusdt_1m.parquet"
+  features_path: "out/BTCUSDT/loose_v5.1/1D/btcusdt_loose_v5.1_features_1D.csv"
+  labels_path: "out/BTCUSDT/loose_v5.1/1D/btcusdt_loose_v5.1_labels_1D.csv"
+  
+  ohlcv_datetime_col: "datetime"
+  features_datetime_col: "ts"
+  labels_datetime_col: "ts"
+  start_date: "2023-01-01"
+  end_date: null
+  dropna: true
+  
+  symbol: "BTCUSDT"
+  timeframe: "1D"
+  strategy_type: "loose_v5.1"
+
+preprocess:
+  resample: "1D"
+
+features:
+  returns: {enabled: true, windows: [5, 20, 60], method: "log"}
+  zscore: {enabled: true, window: 20}
+  rsi: {enabled: true, window: 14}
+  atr: {enabled: true, window: 14, normalize: "close"}
+  bbands: {enabled: true, window: 20, k: 2.0}
+  volume_percentile: {enabled: true, window: 60}
+  volatility_percentile: {enabled: true, window: 60, base: "atr"}
+  range_contraction: {enabled: true, window: 20}
+  wick_ratios: {enabled: true, clip: 5.0}
+  obv_delta: {enabled: true, window: 20}
+
+labels:
+  future_return_binary: {
+    enabled: true, method: "log", side: "upper",
+    pctile: 60, ref_window: 252, horizons: [10, 20]
+  }
+  breakout_confirmation: {
+    enabled: true, lookback: 60, confirm_days: 2, min_breakout_pct: 0.5
+  }
+  max_drawdown_within_horizon: {
+    enabled: true, horizon: 20, threshold_pct: -10.0
+  }
+  stop_target_hit_first: {
+    enabled: true, horizon: 20, atr_window: 14, stop_atr: 1.5, target_atr: 2.5
+  }
+  regime_label: {
+    enabled: true, atr_window: 14, vol_upper_pctile: 70, trend_ma_window: 50
+  }
+
+broker:
+  cash: 100000.0
+  commission: 0.001
+  slippage: 0.0005
+
+strategy:
+  strategy_name: "BTCUSDT_1D_Loose_V5.1_Strategy"
+  
+  signals:
+    # 主信号：历史动量
+    primary_signal:
+      label_col: "y_bin_ret_log_p60_h10"
+      threshold: 0.35
+      weight: 0.6
+    
+    secondary_signals:
+      - label_col: "y_brk_lb60_k2_p0"
+        threshold: 0.35
+        weight: 0.25
+      - label_col: "y_regime_vol70_ma50"
+        threshold: 2
+        weight: 0.15
+  
+  risk:
+    stop_loss: 0.012      # 1.2%
+    take_profit: 0.045    # 4.5%
+    trailing_stop: 0.010  # 1.0%
+    
+    trailing_take_profit:
+      enabled: true
+      activation_pct: 0.010
+      trail_pct: 0.006
+      lock_profit_pct: 0.012
+      step_up_pct: 0.003
+    
+    time_stop:
+      enabled: true
+      max_bars: 2        # 1D * 2 = 2天
+      min_profit_bars: 1
+      min_profit_threshold: 0.005
+  
+  feature_filters:
+    volume_filter:
+      enabled: true
+      feature_col: "volume_percentile"
+      min_threshold: 0.2
+    
+    volatility_filter:
+      enabled: true
+      feature_col: "volatility_percentile"
+      min_threshold: 0.15
+      max_threshold: 0.95
+    
+    trend_filter:
+      enabled: true
+      feature_col: "rsi"
+      min_threshold: 30
+      max_threshold: 80
+  
+  position:
+    size_method: "signal_based"
+    base_size: 0.5
+    max_size: 0.95
+    max_positions: 1
+  
+  ml_model:
+    enabled: false
+
+output:
+  base_dir: "out/BTCUSDT/loose_v5.1/1D"
+  base_name: "btcusdt_loose_v5.1"
+  features_csv: "out/BTCUSDT/loose_v5.1/1D/btcusdt_loose_v5.1_features_1D.csv"
+  labels_csv: "out/BTCUSDT/loose_v5.1/1D/btcusdt_loose_v5.1_labels_1D.csv"
+  results_dir: "BackTest_Result"
+  generate_report: true
+  save_trades: true
+  save_equity_curve: true
+  plot_results: true
+  gui_mode: false
+  file_prefix: "BTCUSDT_1D_Loose_V5.1"
+  timestamp: true
+  create_timestamp_dir: true

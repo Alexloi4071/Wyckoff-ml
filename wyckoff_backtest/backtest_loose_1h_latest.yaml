@@ -1,0 +1,71 @@
+# BTCUSDT 1H 寬鬆策略回測配置 - 最新數據
+# 使用更新後的完整歷史數據
+
+general:
+  data_path: "data/btcusdt_1m.parquet"  # 使用更新後的完整數據
+  features_path: "out/BTCUSDT/loose/1H/btcusdt_loose_features_1H.csv"
+  labels_path: "out/BTCUSDT/loose/1H/btcusdt_loose_labels_1H.csv"
+  
+  ohlcv_datetime_col: "datetime"
+  features_datetime_col: "ts"
+  labels_datetime_col: "ts"
+  start_date: "2023-01-01"  # 使用最近2年數據進行回測
+  end_date: null
+  
+  symbol: "BTCUSDT"
+  timeframe: "1H"
+  strategy_type: "loose"
+
+broker:
+  cash: 100000.0
+  commission: 0.001
+  slippage: 0.0005
+
+strategy:
+  strategy_name: "BTCUSDT_1H_Loose_Strategy"
+  
+  signals:
+    primary_signal:
+      label_col: "y_bin_ret_log_p70_h10"  # 回退到V2
+      threshold: 0.5  # 回退到V2
+      weight: 0.6
+    
+    secondary_signals:
+      - label_col: "y_brk_lb60_k2_p0"  # 回退到V2
+        threshold: 0.5  # 回退到V2
+        weight: 0.25
+      - label_col: "y_regime_vol70_ma50"
+        threshold: 2
+        weight: 0.15
+  
+  risk:
+    # 基於1H實際波動調整 (ATR=0.98%)
+    stop_loss: 0.02      # 2% (約2倍ATR) - 適合1H波動
+    take_profit: 0.03    # 3% (約3倍ATR) - 適合1H波動
+    trailing_stop: 0.015 # 1.5% (約1.5倍ATR) - 適合1H波動
+    
+    # 新增：增強移動止盈功能 (基於1H波動調整)
+    trailing_take_profit:
+      enabled: true
+      activation_pct: 0.015   # 1.5% (1.5倍ATR) - 盈利達到時啟動
+      trail_pct: 0.01         # 1.0% (1倍ATR) - 從最高點回撤時觸發
+      step_up_pct: 0.005      # 0.5% - 每上漲0.5%，止盈線上移
+  
+  position:
+    size_method: "percent"
+    size_pct: 0.95
+    max_positions: 1
+  
+  ml_model:
+    enabled: false
+
+output:
+  results_dir: "BackTest_Result"
+  generate_report: true
+  save_trades: true
+  save_equity_curve: true
+  plot_results: true
+  gui_mode: false
+  file_prefix: "BTCUSDT_1H_Loose"
+  timestamp: true
+  create_timestamp_dir: true

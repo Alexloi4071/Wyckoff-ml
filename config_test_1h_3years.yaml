@@ -1,0 +1,105 @@
+# 測試配置：最近3年數據，1小時時間框架
+# 用於小規模測試和驗證
+
+general:
+  seed: 42
+  input_csv: "data/btcusdt_1m.parquet"
+  time_col: "timestamp"
+  open_col: "open"
+  high_col: "high"
+  low_col: "low"
+  close_col: "close"
+  volume_col: "volume"
+  # 提取最近3年數據 (根據你的實際數據調整日期)
+  start_date: "2021-01-01"  # 調整為你數據中3年前的日期
+  end_date: null            # null 表示使用到最新數據
+  dropna: true
+
+preprocess:
+  tz_localize: "UTC"
+  resample: "1H"  # 只生成1小時數據進行測試
+  log_price: true
+
+features:
+  returns:
+    enabled: true
+    windows: [24, 168]  # 1天(24H), 1週(168H)
+    method: "log"
+  
+  zscore:
+    enabled: true
+    window: [48, 78, 168]  # 1週的小時數
+
+  rsi:
+    enabled: true
+    window: 14
+  
+  atr:
+    enabled: true
+    window: 14
+    normalize: "close"
+  
+  bbands:
+    enabled: true
+    window: 20
+    k: 2.0
+  
+  volume_percentile:
+    enabled: true
+    window: 168  # 1週
+  
+  volatility_percentile:
+    enabled: true
+    window: 168
+    base: "atr"
+  
+  range_contraction:
+    enabled: false
+    window: 48  # 2天
+  
+  wick_ratios:
+    enabled: true
+    clip: 5.0
+  
+  obv_delta:
+    enabled: true
+    window: [24, 48, 72]
+
+labels:
+  future_return_binary:
+    enabled: true
+    method: "log"
+    side: "upper"
+    pctile: 75
+    ref_window: 2160  # 90天的小時數 (90*24)
+    horizons: [24, 72]  # 預測1天後、3天後
+  
+  breakout_confirmation:
+    enabled: true
+    lookback: 168  # 1週回望
+    confirm_days: 3
+    min_breakout_pct: 0.5
+  
+  max_drawdown_within_horizon:
+    enabled: true
+    horizon: 48  # 2天
+    threshold_pct: -3.0
+  
+  stop_target_hit_first:
+    enabled: true
+    horizon: 24  # 1天
+    atr_window: 14
+    stop_atr: 1.5
+    target_atr: 2.5
+  
+  regime_label:
+    enabled: true
+    atr_window: 14
+    vol_upper_pctile: 80
+    trend_ma_window: 120  # 5天的小時數
+
+output:
+  base_dir: "out/test_3years"  # 測試專用目錄
+  base_name: "btcusdt_3y"      # 測試文件前綴
+  features_csv: "out/test_3years/features.parquet"
+  labels_csv: "out/test_3years/labels.parquet"

@@ -1,0 +1,4 @@
+# file: D:\Wyckoff_ml_project_V5(no ,model,only 1h backtest)\Wyckoff_ml_project\Wyckoff_ml_project\wyckoff_backtest\backtest_engine.py
+# hypothesis_version: 6.141.1
+
+[100, '%H%M%S', '%Y%m%d', '-', '--config', '=', 'Backtrader回測引擎', '[回測流程完成]', '[回測結果摘要]', '[繪圖] 圖表生成完成', '[繪圖] 已跳過圖表生成', '[繪圖] 開始生成圖表...', '[錯誤] 沒有回測結果可分析', '[開始回測]', '_V', '__main__', 'backtest', 'backtest_config.yaml', 'broker', 'cash', 'commission', 'create_timestamp_dir', 'data_path', 'datetime_col', 'drawdown', 'end_date', 'equity_log', 'features_path', 'file_prefix', 'general', 'generate_report', 'gui_mode', 'ignore', 'labels_datetime_col', 'labels_path', 'lost', 'ohlcv_datetime_col', 'output', 'plot_results', 'r', 'results_dir', 'save_equity_curve', 'save_trades', 'sharpe', 'sharperatio', 'slippage', 'start_date', 'strategy', 'symbol', 'timeframe', 'timestamp', 'trades', 'trades_log', 'ts', 'utf-8', 'won', '無交易記錄可儲存', '無權益曲線數據可儲存']

@@ -1,0 +1,4 @@
+# file: D:\Wyckoff_ml_project_V5(no ,model,only 1h backtest)\Wyckoff_ml_project\Wyckoff_ml_project\wyckoff_backtest\timeframe_utils.py
+# hypothesis_version: 6.141.1
+
+[0.0, 1.0, 7.0, 24.0, 30.0, 168.0, 720.0, 100, 954, '0 hours (0 days)', '1D', '1H', '4H', 'D', 'H', 'Invalid duration', 'M', 'W', '^(\\d+)([HDWM])$', '__main__', 'bars', 'days', 'display', 'hours', 'unit', 'value']

@@ -1,0 +1,55 @@
+# 進取寬鬆版配置：訊號多，容忍較多雜訊，偏向機會型
+# 支持多時間框架，從1分鐘數據重採樣
+general:
+  seed: 42
+  input_csv: "data/btcusdt_1m.parquet"  # 使用最新更新的完整1分鐘數據
+  time_col: "datetime"
+  open_col: "open"
+  high_col: "high"
+  low_col: "low"
+  close_col: "close"
+  volume_col: "volume"
+  start_date: null  # 已經是3年數據，不需要再限制
+  end_date: null
+  dropna: true
+
+preprocess:
+  tz_localize: "UTC"  # 設定時區確保重採樣正確
+  resample: ["15m", "1H", "4H", "1D"]  # 多時間框架：15分鐘、1小時、4小時、1天
+  log_price: false
+
+features:
+  returns: {enabled: true, windows: [5, 20, 60], method: "log"}        # 短週期收益率更靈敏
+  zscore: {enabled: true, window: 20}                                  # 短視窗Z-score
+  rsi: {enabled: true, window: 14}
+  atr: {enabled: true, window: 14, normalize: "close"}
+  bbands: {enabled: true, window: 20, k: 2.0}
+  volume_percentile: {enabled: true, window: 60}
+  volatility_percentile: {enabled: true, window: 60, base: "atr"}
+  range_contraction: {enabled: true, window: 20}
+  wick_ratios: {enabled: true, clip: 5.0}
+  obv_delta: {enabled: true, window: 20}
+
+labels:
+  future_return_binary: {
+    enabled: true, method: "log", side: "upper",
+    pctile: 70, ref_window: 252, horizons: [10, 20]  # 回退到V2
+  }
+  breakout_confirmation: {
+    enabled: true, lookback: 60, confirm_days: 2, min_breakout_pct: 0.5  # 回退到V2
+  }
+  max_drawdown_within_horizon: {
+    enabled: true, horizon: 20, threshold_pct: -10.0  # 回退到V2
+  }
+  stop_target_hit_first: {
+    enabled: true, horizon: 20, atr_window: 14, stop_atr: 1.5, target_atr: 2.5  # 回退到V2
+  }
+  regime_label: {
+    enabled: true, atr_window: 14, vol_upper_pctile: 70, trend_ma_window: 50
+  }
+
+output:
+  base_dir: "out/BTCUSDT/loose"    # 按幣種和策略組織：out/幣種/策略/時間框架/
+  base_name: "btcusdt_loose"       # 寬鬆策略文件前綴
+  features_csv: "out/BTCUSDT_1D_loose_features.parquet"  # 後向兼容
+  labels_csv: "out/BTCUSDT_1D_loose_labels.parquet"      # 後向兼容

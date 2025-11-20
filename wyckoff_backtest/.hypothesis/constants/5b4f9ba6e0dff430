@@ -1,0 +1,4 @@
+# file: D:\Wyckoff_ml_project_V5(no ,model,only 1h backtest)\Wyckoff_ml_project\Wyckoff_ml_project\wyckoff_backtest\data_handler.py
+# hypothesis_version: 6.141.1
+
+['\n數據質量報告:', '%Y-%m-%d', '.parquet', '2022-01-01', '2023-12-31', 'UTC', '__main__', 'anomalies', 'close', 'coerce', 'data_path', 'data_types', 'date_range', 'end', 'end_date', 'error', 'feature_columns', 'feature_count', 'features_path', 'high', 'ignore', 'label_columns', 'label_count', 'labels_path', 'low', 'max', 'mean', 'message', 'min', 'missing_data', 'ohlcv_columns', 'open', 'start', 'start_date', 'status', 'std', 'success', 'total_records', 'ts', 'value_ranges', 'volume', 'warning', '存在high < low的異常數據', '數據尚未載入或對齊', '數據未載入', '沒有找到共同的時間索引', '沒有數據可導出']

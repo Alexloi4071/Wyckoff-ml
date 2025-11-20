@@ -1,0 +1,61 @@
+# Markdown files
+*.md
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Backup files
+*.backup
+*.bak
+
+# Large data files - exclude files over 50MB
+data/btcusdt_1m.parquet
+data/btcusdt_1m_backup.parquet
+data/btcusdt_1m_3years.parquet
+
+# Large output files - exclude files over 50MB
+out/BTCUSDT/loose_v5.1/15m/btcusdt_loose_v5.1_features_15m.csv
+out/BTCUSDT/loose_v5.1_fixed/1H/btcusdt_loose_v5.1_fixed_labels_1H.csv
+BackTest_Result/20251120_V12/signals_20251120_224053.csv
+
+# Exclude all large CSV files in output directories
+out/**/*_features_*.csv
+out/**/*_labels_*.csv
+BackTest_Result/**/signals_*.csv
+BackTest_Result/**/equity_*.csv
+BackTest_Result/**/trades_*.csv
